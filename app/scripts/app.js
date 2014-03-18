@@ -4,8 +4,9 @@ angular.module('monitorWebApp', [
   'ngResource',
   'ngSanitize',
   'ngRoute',
-  'tc.chartjs',
-  'angular-momentjs'
+  'angular-flot',
+  'angular-momentjs',
+  'ui.date'
 ])
   .config(function ($routeProvider) {
     $routeProvider
