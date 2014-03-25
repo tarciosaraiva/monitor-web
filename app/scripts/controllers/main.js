@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('monitorWebApp').controller('MainCtrl', function ($scope,$moment,$http) {
+angular.module('monitorWebApp').controller('MainCtrl', function ($scope, $moment, $http) {
 
   $scope.from = '';
   $scope.timeFrom = 0;
@@ -8,44 +8,38 @@ angular.module('monitorWebApp').controller('MainCtrl', function ($scope,$moment,
   $scope.timeTo = 23;
   $scope.data = [];
   $scope.options = {
-        xaxis: {
-          mode: "time",
-          minTickSize: [1, 'hour'],
-          tickFormatter: function(val, axis) {
-            var d = new Date(val);
-            return $moment(d).format('ddd, h:mm:ss a');
-          }
-        },
-        grid: {
-          color: '#cccccc'
-        },
-        series: {
-          lines: {
-            show: true, 
-            lineWidth: '2px',
-            fill: true, 
-            fillColor: "#95b7ff",
-            steps: true
-          }
+    xaxis: {
+      mode: 'time',
+      minTickSize: [30, 'second'],
+      tickFormatter: function (val, axis) {
+        return $moment(val).format('ddd, hh:mm a');
+      }
+    },
+    grid: {
+      color: '#cccccc'
     }
   };
   $scope.hasData = false;
 
-  $scope.refresh = function() {
+  $scope.refresh = function () {
     var fromDate = new Date($scope.from);
     fromDate.setHours($scope.timeFrom);
 
     var toDate = new Date($scope.to);
     toDate.setHours($scope.timeTo);
 
-    var url = '{"$and":[ {"time": {"$gt": %s1}}, {"time": {"$lte": %s2}} ]}';
-    url = url.replace('%s1', fromDate.getTime(), 'g');
-    url = url.replace('%s2', toDate.getTime(), 'g');
-    url = 'http://192.168.1.140:9292/monitor/temperature?selector=' + encodeURIComponent(url);
+    var baseUrl = 'http://192.168.1.140:9292/monitor/temperature?';
 
-    $http.get('/temperature.json').success(function(mongoData) {
-      var mappedData = mongoData.map(function(e) { 
-        return [e.time, e.temp];
+    var url = 'selector={"$and":[ {"time": {"$gt": new Date("%s1")}}, {"time": {"$lte": new Date("%s2")}} ]}';
+    url = url.replace('%s1', fromDate.toISOString(), 'g');
+    url = url.replace('%s2', toDate.toISOString(), 'g');
+    url = baseUrl + encodeURIComponent(url);
+
+    $http.get(url).success(function (mongoData) {
+      var mappedData = mongoData.map(function (e) {
+        var d = new Date(e.time);
+        // var m = $moment(d).format('ddd, h:mm:ss a');
+        return [d.getTime(), e.temp];
       });
 
       $scope.data = [mappedData];
@@ -66,10 +60,10 @@ angular.module('monitorWebApp').controller('MainCtrl', function ($scope,$moment,
   };
 
   $scope.dateOptions = {
-        changeYear: false,
-        changeMonth: false,
-        yearRange: '2010:-0',
-        dateFormat: 'dd-mm-yy'
+    changeYear: false,
+    changeMonth: false,
+    yearRange: '2010:-0',
+    dateFormat: 'dd-mm-yy'
   };
 
 });
